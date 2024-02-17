@@ -1,369 +1,33 @@
 import * as React from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 // import { OrbitControls, PerspectiveCamera } from "@react-three/drei";
-import { EffectComposer, Bloom, HueSaturation, BrightnessContrast } from "@react-three/postprocessing";
+import {
+  EffectComposer,
+  Bloom,
+  HueSaturation,
+  BrightnessContrast,
+} from "@react-three/postprocessing";
 
 import { Model } from "./Arwinghigh";
 import * as THREE from "three";
 import { useThree } from "@react-three/fiber";
 import { Physics, RigidBody } from "@react-three/rapier";
-import { Loader, Stats } from "@react-three/drei";
+import {
+  Billboard,
+  Environment,
+  Loader,
+  PerspectiveCamera,
+  Stats,
+  Trail,
+} from "@react-three/drei";
 import { Fighter } from "./Fighter";
 import { Garuda } from "./Garuda";
 import { Tank } from "./Tank";
+import { Env } from "./FoxEnv";
+import { useSpline } from "./useSpline";
 
 function Scene() {
   let progress = 0;
-
-  function AirCarrier({ position, rotation, direction }) {
-    const ref = React.useRef();
-    const [shouldRemove, setShouldRemove] = React.useState(false);
-    let framecount = 0;
-    let health = 2;
-    useFrame(() => {
-      framecount++;
-      if (!shouldRemove && framecount < 100) {
-        ref.current.applyImpulse(
-          new THREE.Vector3(direction[0], direction[1], direction[2]),
-          ref.current.position
-        );
-      }
-    });
-
-    return (
-      <>
-        {shouldRemove ? null : (
-          <RigidBody
-            gravityScale={0}
-            colliders="hull"
-            position={position}
-            rotation={rotation ? rotation : [0, 0, 0]}
-            ref={ref}
-            onCollisionEnter={(event) => {
-              health -= 1;
-              if (health <= 0) {
-                setShouldRemove(true);
-              }
-            }}
-          >
-            <Fighter />
-          </RigidBody>
-        )}
-      </>
-    );
-  }
-
-  function GroundTank({ position, rotation, direction }) {
-    const ref = React.useRef();
-    const [shouldRemove, setShouldRemove] = React.useState(false);
-    let framecount = 0;
-    let health = 2;
-    useFrame(() => {
-      framecount++;
-      if (!shouldRemove && framecount < 100) {
-        ref.current.applyImpulse(
-          new THREE.Vector3(direction[0], direction[1], direction[2]),
-          ref.current.position
-        );
-      }
-    });
-
-    return (
-      <>
-        {shouldRemove ? null : (
-          <RigidBody
-            gravityScale={1}
-            colliders="hull"
-            position={position}
-            rotation={rotation ? rotation : [0, 0, 0]}
-            ref={ref}
-            friction={0}
-            onCollisionEnter={(event) => {
-              if (event.colliderObject.name == "projectile") {
-                console.log("hit");
-                health -= 1;
-              }
-              if (health <= 0) {
-                setShouldRemove(true);
-              }
-            }}
-          >
-            <Tank />
-          </RigidBody>
-        )}
-      </>
-    );
-  }
-
-  function GroundGaruda({ position, rotation, direction }) {
-    const ref = React.useRef();
-    const [shouldRemove, setShouldRemove] = React.useState(false);
-    let framecount = 0;
-    let health = 25;
-    useFrame(({ clock }) => {
-      framecount++;
-      if (!shouldRemove) {
-        ref.current.applyImpulse(
-          new THREE.Vector3(
-            Math.sin(clock.getElapsedTime() * 3) * direction[0] * 2,
-            direction[1],
-            direction[2]
-          ),
-          ref.current.position
-        );
-      }
-    });
-
-    return (
-      <>
-        {shouldRemove ? null : (
-          <RigidBody
-            colliders="hull"
-            position={position}
-            rotation={rotation ? rotation : [0, 0, 0]}
-            ref={ref}
-            gravityScale={0}
-            restitution={0}
-            friction={0}
-            onCollisionEnter={(event) => {
-              if (event.colliderObject.name == "projectile") {
-                console.log("hit");
-                health -= 1;
-              }
-              if (health <= 0) {
-                setShouldRemove(true);
-              }
-            }}
-          >
-            <Garuda />
-          </RigidBody>
-        )}
-      </>
-    );
-  }
-
-  function Wave1() {
-    const triggerPoint = -25;
-    const [spawn, setSpawn] = React.useState(false);
-    useFrame(() => {
-      if (progress < triggerPoint) {
-        setSpawn(true);
-      }
-    });
-
-    return (
-      <>
-        {!spawn ? null : (
-          <group>
-            <AirCarrier
-              position={[30, 3, -65]}
-              rotation={[0, Math.PI / 2, 0]}
-              direction={[-2, 0, 0]}
-            />
-            <AirCarrier
-              position={[35, 5, -55]}
-              rotation={[0, Math.PI / 2, 0]}
-              direction={[-2, 0, 0]}
-            />
-            <AirCarrier
-              position={[-25, 7, -75]}
-              rotation={[0, Math.PI / 2, 0]}
-              direction={[2, 0, 0]}
-            />
-          </group>
-        )}
-      </>
-    );
-  }
-
-  function Wave2() {
-    const triggerPoint = -60;
-    const [spawn, setSpawn] = React.useState(false);
-    useFrame(() => {
-      if (progress < triggerPoint) {
-        setSpawn(true);
-      }
-    });
-
-    return (
-      <>
-        {!spawn ? null : (
-          <group>
-            <AirCarrier
-              position={[5, 3, -110]}
-              rotation={[0, 0, 0]}
-              direction={[0, 0, 1]}
-            />
-            <AirCarrier
-              position={[7, 5, -135]}
-              rotation={[0, 0, 0]}
-              direction={[0, 0, 1]}
-            />
-            <AirCarrier
-              position={[-7, 7, -120]}
-              rotation={[0, 0, 0]}
-              direction={[0, 0, 1]}
-            />
-          </group>
-        )}
-      </>
-    );
-  }
-
-  function Wave3() {
-    const triggerPoint = -110;
-    const [spawn, setSpawn] = React.useState(false);
-    useFrame(() => {
-      if (progress < triggerPoint) {
-        setSpawn(true);
-      }
-    });
-
-    return (
-      <>
-        {!spawn ? null : (
-          <group>
-            <AirCarrier
-              position={[5, -1, -90]}
-              rotation={[0, 0, 0]}
-              direction={[0, 0, -6]}
-            />
-            <AirCarrier
-              position={[-6, -2, -80]}
-              rotation={[0, 0, 0]}
-              direction={[0, 0, -6]}
-            />
-          </group>
-        )}
-      </>
-    );
-  }
-
-  function Wave4() {
-    const triggerPoint = -140;
-    const [spawn, setSpawn] = React.useState(false);
-    useFrame(() => {
-      if (progress < triggerPoint) {
-        setSpawn(true);
-      }
-    });
-
-    return (
-      <>
-        {!spawn ? null : (
-          <group>
-            <AirCarrier
-              position={[45, 3, -170]}
-              rotation={[0, 0, 0]}
-              direction={[-7, 0, 0]}
-            />
-          </group>
-        )}
-      </>
-    );
-  }
-
-  function Wave5() {
-    const triggerPoint = -170;
-    const [spawn, setSpawn] = React.useState(false);
-    useFrame(() => {
-      if (progress < triggerPoint) {
-        setSpawn(true);
-      }
-    });
-
-    return (
-      <>
-        {!spawn ? null : (
-          <group>
-            <GroundGaruda
-              position={[0, -7, -200]}
-              rotation={[0, 0, 0]}
-              direction={[10, 0, -4]}
-            />
-          </group>
-        )}
-      </>
-    );
-  }
-
-  function Wave6() {
-    const triggerPoint = -200;
-    const [spawn, setSpawn] = React.useState(false);
-    useFrame(() => {
-      if (progress < triggerPoint) {
-        setSpawn(true);
-      }
-    });
-
-    return (
-      <>
-        {!spawn ? null : (
-          <group>
-            <GroundTank
-              position={[0, -7, -230]}
-              rotation={[0, 0, 0]}
-              direction={[0, 0, -0.9]}
-            />
-            <GroundTank
-              position={[-3, -7, -235]}
-              rotation={[0, 0, 0]}
-              direction={[0, 0, -0.9]}
-            />
-            <GroundTank
-              position={[3, -7, -235]}
-              rotation={[0, 0, 0]}
-              direction={[0, 0, -0.9]}
-            />
-            <GroundTank
-              position={[-6, -7, -240]}
-              rotation={[0, 0, 0]}
-              direction={[0, 0, -0.9]}
-            />
-            <GroundTank
-              position={[6, -7, -240]}
-              rotation={[0, 0, 0]}
-              direction={[0, 0, -0.9]}
-            />
-          </group>
-        )}
-      </>
-    );
-  }
-
-  function Wave7() {
-    const triggerPoint = -280;
-    const [spawn, setSpawn] = React.useState(false);
-    useFrame(() => {
-      if (progress < triggerPoint) {
-        setSpawn(true);
-      }
-    });
-
-    return (
-      <>
-        {!spawn ? null : (
-          <group>
-            <GroundTank
-              position={[9, -7, -310]}
-              rotation={[0, 0, 0]}
-              direction={[0, 0, -0.8]}
-            />
-            <GroundTank
-              position={[-9, -7, -310]}
-              rotation={[0, 0, 0]}
-              direction={[0, 0, -0.8]}
-            />
-            <GroundGaruda
-              position={[0, -7, -320]}
-              rotation={[0, 0, 0]}
-              direction={[0, 0, -0.8]}
-            />
-          </group>
-        )}
-      </>
-    );
-  }
 
   function SphereParticles() {
     const ref = React.useRef();
@@ -443,37 +107,12 @@ function Scene() {
       </>
     );
   }
-  function Cylinders(props) {
-    const numberOfCylinders = 30; // Replace this with the desired number of cylinder pairs
-    const cylinders = [];
-
-    for (let i = 0; i < numberOfCylinders; i++) {
-      const zPosition = i * 40;
-
-      cylinders.push(
-        <mesh key={`cylinder-right-${i}`} position={[20, 0, -zPosition]}>
-          <cylinderGeometry args={[3, 3, 30, 8]} />
-          <meshStandardMaterial color="gray" />
-        </mesh>,
-        <mesh key={`cylinder-left-${i}`} position={[-20, 0, -zPosition]}>
-          <cylinderGeometry args={[3, 3, 30, 8]} />
-          <meshStandardMaterial color="gray" />
-        </mesh>
-      );
-    }
-
-    return (
-      <group {...props} position={[0, -7, -30]}>
-        {cylinders}
-      </group>
-    );
-  }
 
   function Arwing() {
     const boxRef = React.useRef();
     const arwingRef = React.useRef();
     const arwingBody = React.useRef();
-    const secondBoxRef = React.useRef();
+    const lookAtTarget = React.useRef();
     const meshRef = React.useRef();
     const [projectiles, setProjectiles] = React.useState([]);
     let distance = 5;
@@ -483,39 +122,47 @@ function Scene() {
       space: false,
       mousePressed: false,
     });
+    const [trailValues, setTrailValues] = React.useState({
+      width: 0.2,
+      color: "#ffffff",
+      transparent: true,
+      length: 5 ,
+      decay: 1,
+      local: false,
+      stride: 0,
+      interval: 1,
+      target: undefined,
+      attenuation: (width) => width,
+      fade: (width) => width,
+    });
 
     // const [space, setSpace] = React.useState(false);
     const { viewport } = useThree();
     // let speed = 0.05;
-    const { camera } = useThree();
+
     const [shotsFired, setShotsFired] = React.useState(0);
-    camera.fov = 35;
     // let cameraDistance = 4;
     const [speed, setSpeed] = React.useState(0.1);
-    const [cameraDistance, setCameraDistance] = React.useState(4);
+    const [cameraDistance, setCameraDistance] = React.useState(8);
 
     const { space, mousePressed } = inputState;
+    const { points, loading, error } = useSpline("foxCurve.json");
+    const [speedFactor, setSpeedFactor] = React.useState(1);
+    const [pointest, setPointest] = React.useState([]);
+    const [currentPoint, setCurrentPoint] = React.useState(0);
+    React.useEffect(() => {
+      if (points) {
+        setPointest(points);
+        setCurrentPoint(points.length - 1);
+      }
+    }, [points]);
 
-    useFrame(({ mouse, clock }) => {
+    const cam = React.useRef();
+    const test = React.useRef();
+    useFrame(({ pointer, clock }, delta) => {
+      const camera = cam.current;
       const currentTime = clock.getElapsedTime();
       // boxRef.current.rotation.z -= 0.05;
-      if (space) {
-        if (speed < 0.15) {
-          setSpeed((prevSpeed) => prevSpeed + 0.01);
-          setCameraDistance((prevCameraDistance) => prevCameraDistance + 0.3);
-        }
-      } else {
-        if (speed > 0.1) {
-          setSpeed((prevSpeed) => prevSpeed - 0.01);
-        }
-        if (cameraDistance > 4) {
-          setCameraDistance((prevCameraDistance) => prevCameraDistance - 0.1);
-        }
-      }
-
-      // if(MousePressed){
-      //   handleMouse();
-      // }
 
       if (
         mousePressed &&
@@ -537,46 +184,53 @@ function Scene() {
       if (!mousePressed) {
         setShotsFired(0);
       }
-      camera.position.z = arwingRef.current.position.z + cameraDistance;
-      camera.position.x = arwingRef.current.position.x * 0.6;
-      camera.position.y = arwingRef.current.position.y * 0.6;
-      camera.rotation.x = arwingRef.current.position.y * 0.02;
-      camera.rotation.y = -arwingRef.current.position.x * 0.02;
-      camera.rotation.z = -arwingRef.current.position.x * 0.01;
-      boxRef.current.rotation.set(0, 0, 0);
-      boxRef.current.position.z -= speed;
-      boxRef.current.position.x = mouse.x * viewport.width * 1.5;
-      boxRef.current.position.y = mouse.y * viewport.height * 1.5;
-      progress = boxRef.current.position.z;
-      const boxPosition = new THREE.Vector3();
-      boxPosition.setFromMatrixPosition(boxRef.current.matrixWorld);
+
+      if(space){
+        setSpeedFactor(2);
+      } else {
+        setSpeedFactor(1);
+      }
+
       const offset = new THREE.Vector3(0, 0, distance).applyQuaternion(
         arwingRef.current.quaternion
       );
-      arwingRef.current.lookAt(boxPosition);
-      secondBoxRef.current.position.copy(
-        arwingRef.current.position.clone().add(offset)
-      );
-      const distanceX = boxPosition.x - arwingRef.current.position.x;
 
-      // Calculer l'angle entre les deux points en radians
-      const angle = Math.atan2(distanceX, distance);
-      // Définir la rotation de l'arwing autour de l'axe Z en fonction de l'angle
-      arwingRef.current.rotation.z =
-        Math.sin(clock.getElapsedTime() * 2) * 0.1 + angle;
+      const distanceX = boxRef.current.position.x + test.current.position.x;
+      const angleX = Math.atan2(distanceX, distance);
+      const distanceY = boxRef.current.position.y - test.current.position.y;
+      const angleY = Math.atan2(distanceY, distance);
+      
+      
+      boxRef.current.position.x = pointer.x * viewport.width * 0.1;
+      boxRef.current.position.y = pointer.y * viewport.height * 0.1;
+      if (currentPoint < pointest.length - 1) {
+        arwingRef.current.position.lerp(
+          pointest[currentPoint],
+          delta * speedFactor
+        );
+        lookAtTarget.current.position.lerp(
+          pointest[currentPoint + 1],
+          delta * speedFactor
+        );
+        arwingRef.current.lookAt(lookAtTarget.current.position);
+        if (arwingRef.current.position.distanceTo(pointest[currentPoint]) < 5) {
+          setCurrentPoint(currentPoint + 1);
+        }
+      } else {
+        setCurrentPoint(0);
+      }
+      camera.rotation.y = Math.PI;
+      if (test.current.position.x != -boxRef.current.position.x) {
+        test.current.position.x -=
+          ((boxRef.current.position.x + test.current.position.x) / 10) * 0.1;
+      }
+      if (test.current.position.y != boxRef.current.position.y) {
+        test.current.position.y +=
+          ((boxRef.current.position.y - test.current.position.y) / 10) * 0.1;
+      }
+      test.current.rotation.z = Math.sin(clock.getElapsedTime() * 2) * 0.1 + angleX + Math.PI;
+      test.current.rotation.x = -angleY;
 
-      if (arwingRef.current.position.x != boxPosition.x) {
-        arwingRef.current.position.x +=
-          ((boxPosition.x - arwingRef.current.position.x) / 10) * 0.3;
-      }
-      if (arwingRef.current.position.y != boxPosition.y) {
-        arwingRef.current.position.y +=
-          ((boxPosition.y - arwingRef.current.position.y) / 10) * 0.3;
-      }
-      if (arwingRef.current.position.z != boxPosition.z) {
-        arwingRef.current.position.z +=
-          ((boxPosition.z - arwingRef.current.position.z) / 10) * speed;
-      }
     });
 
     // const camera = useThree(({ camera }) => camera);
@@ -586,12 +240,12 @@ function Scene() {
       const currentTime = performance.now();
       const shotDelay = 150; // Delay in milliseconds
 
-      if (!arwingRef.current) return;
+      if (!test.current) return;
 
-      const projectilePosition = arwingRef.current.position.clone();
-      const projectileRotation = arwingRef.current.rotation.clone();
+      const projectilePosition = test.current.position.clone();
+      const projectileRotation = test.current.rotation.clone();
       const forwardVector = new THREE.Vector3(0, 0, -1).applyQuaternion(
-        arwingRef.current.quaternion
+        test.current.quaternion
       );
       setProjectiles((prev) => [
         ...prev,
@@ -642,23 +296,7 @@ function Scene() {
     return (
       <>
         <group>
-          <mesh
-            ref={boxRef}
-            position={[0, 0, -10]}
-            rotation={[0, Math.PI, Math.PI / 4]}
-          >
-            {/* <torusGeometry args={[0.3, 0.02, 2, 4]} />
-            <meshBasicMaterial color="#00FF00"  /> */}
-          </mesh>
-
-          <mesh
-            ref={secondBoxRef}
-            position={[0, 0, -20]}
-            rotation={[0, Math.PI, Math.PI / 4]}
-          >
-            {/* <torusGeometry args={[0.3, 0.02, 2, 4]} />
-            <meshBasicMaterial color="#00FF00"  /> */}
-          </mesh>
+          <mesh ref={lookAtTarget}></mesh>
 
           {projectiles.map((projectile, index) => (
             <Projectile
@@ -672,41 +310,30 @@ function Scene() {
           <group
             ref={arwingRef}
             rotation={[0, Math.PI, 0]}
-            position={[0, 0, 0]}
+            position={[
+              -75.46141815185547, 12.538070678710938, -40.60304260253906,
+            ]}
           >
-            <Model />
+            <Billboard>
+              <mesh ref={boxRef} position={[0, 0, -10]}>
+              </mesh>
+            </Billboard>
+            <mesh ref={test} rotation={[0, 0, Math.PI]}>
+              
+              <Model />
+              
+              <Trail {...trailValues}>
+                <mesh position={[1, 0.18, -1]} />
+              </Trail>
+              <Trail {...trailValues}>
+                <mesh position={[-1, 0.18, -1]} />
+              </Trail>
+            </mesh>
+
+            <PerspectiveCamera ref={cam} makeDefault position={[0, 0, -8]} />
           </group>
         </group>
       </>
-    );
-  }
-
-  function Corneria() {
-    return (
-      <group>
-        <mesh position={[0, -7, -50]}>
-          <torusGeometry args={[2.5, 0.2, 2, 64]} />
-
-          <meshStandardMaterial color={[0.15, 0.15, 0.15]} />
-        </mesh>
-
-        <mesh position={[5, -7, -70]}>
-          <torusGeometry args={[2.5, 0.2, 2, 16]} />
-
-          <meshStandardMaterial color="gray" />
-        </mesh>
-        <mesh position={[-5, -7, -90]}>
-          <torusGeometry args={[2.5, 0.2, 2, 16]} />
-
-          <meshStandardMaterial color="gray" />
-        </mesh>
-
-        <mesh position={[0, -7, -110]}>
-          <torusGeometry args={[2.5, 0.2, 2, 16]} />
-
-          <meshStandardMaterial color="gray" />
-        </mesh>
-      </group>
     );
   }
 
@@ -731,29 +358,12 @@ function Scene() {
                 attach="shadow-camera"
                 args={[-10, 10, 10, -10]}
               />
-            </directionalLight>{" "}
+            </directionalLight>
             <Arwing />
-            <Cylinders />
-            <Corneria />
-            <RigidBody type="fixed" restitution={0} friction={0}>
-              <mesh
-                receiveShadow={true}
-                rotation={[-Math.PI / 2, 0, 0]}
-                position={[0, -7, 0]}
-              >
-                <planeGeometry args={[1000, 1000]} />
-                <meshStandardMaterial color="#33764d" />
-              </mesh>
-            </RigidBody>
-            <Wave1 />
-            <Wave2 />
-            <Wave3 />
-            <Wave4 />
-            <Wave5 />
-            <Wave6 />
-            <Wave7 />
+            <Env scale={1} />
+            <Environment preset="sunset" />
             <SphereParticles />
-            <fog attach="fog" args={["#73b7fb", 0, 70]} />
+            {/* <fog attach="fog" args={["#73b7fb", 0, 70]} /> */}
           </Physics>
           <EffectComposer>
             <Bloom
